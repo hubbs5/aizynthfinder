@@ -330,6 +330,8 @@ class TemplatedRetroReaction(RetroReaction):
         self._template_fallback: str = kwargs.get("template_fallback", True)
         self.templates = kwargs.get("templates", None)
         self._rd_reaction: Optional[RdReaction] = None
+        self.inchi_fail = kwargs.get("inchi_fail", 0)
+        self.rdkit_fail = kwargs.get("rdkit_fail", 0)
 
     def __str__(self) -> str:
         return (
@@ -411,6 +413,7 @@ class TemplatedRetroReaction(RetroReaction):
         try:
             reactants_list = rxn.RunReactants([self.mol.rd_mol])
         except:
+            self.rdkit_fail += 1
             if self._template_fallback: # TODO: come up with a better name
                 return self._apply_with_templates()
             reactants_list = []
@@ -463,6 +466,7 @@ class TemplatedRetroReaction(RetroReaction):
                 # Check for Inchi Conversion
                 Chem.MolToInchi(mol)
             except (MoleculeException, KekulizeException):
+                self.inchi_fail += 1
                 pass
             else:
                 outcomes.append(mols)
